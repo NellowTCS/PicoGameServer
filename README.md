@@ -149,9 +149,9 @@ cmake ..
 make
 ```
 
-Copy the resulting pico_webserver.uf2 file to the Pico mass storage device manually.
+Copy the resulting pico_webserver.uf2 file to the Pico mass storage device manually.<br/>
 Webserver will be available at http://192.168.7.1/
 
-Content it is serving is in /fs
+Content it is serving is in /fs<br/>
 If you change any files there, run ./regen-fsdata.sh
 
