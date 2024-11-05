@@ -1,10 +1,10 @@
-**Credits:**
-https://community.element14.com/challenges-projects/project14/cheerusup/b/blog/posts/basic-html-games-hosted-on-the-raspberry-pi-pico
-https://gist.github.com/straker/ff00b4b49669ad3dec890306d348adc4#other-basic-games
+**Credits:**<br/>
+https://community.element14.com/challenges-projects/project14/cheerusup/b/blog/posts/basic-html-games-hosted-on-the-raspberry-pi-pico<br/>
+https://gist.github.com/straker/ff00b4b49669ad3dec890306d348adc4#other-basic-games<br/>
 https://github.com/maxnet/pico-webserver/blob/main/fs/index.html 
 
 # PicoGameServer
-Run a USB game server on your Raspberry Pi Pico or Pico H.
+Run a USB game server on your Raspberry Pi Pico or Pico H to play games locally on your device.
 
 
 ## Games Included
@@ -84,7 +84,7 @@ Run a USB game server on your Raspberry Pi Pico or Pico H.
 #### Controls
 - Cursor/Finger.<br/>
 #### How to Play
-- Simon will flash 1 of 4 lights a number of times. Press the same colored lights in the same order to get points.<br/>
+- Place Xs in order to get a three in a row before O does.<br/>
 
 ### Breakout
 ![Screenshot 2024-11-04 4 01 47 PM](https://github.com/user-attachments/assets/b1715c93-a78d-46f1-95c6-95b9285f6b9f)
