@@ -1,5 +1,6 @@
 # pico-webserver
 
+Forked README.md from github.com/maxnet/pico-webserver.
 Webserver example that came with TinyUSB slightly modified to run on a Raspberry Pi Pico.
 Lets the Pico pretend to be a USB Ethernet device. Runs a webinterface at http://192.168.7.1/
 
