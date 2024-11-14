@@ -125,17 +125,6 @@ Run a USB game server on your Raspberry Pi Pico or Pico H to play games locally 
 #### How to Play
 - Fill a line with blocks to clear it. Clear all lines that you can.<br/>
 
-## Build Instructions
-### Build dependencies
-
-On Debian:
-
-```
-sudo apt install git build-essential cmake gcc-arm-none-eabi
-```
-
-Your Linux distribution does need to provide a recent CMake (3.13+).
-If not, compile [CMake from source](https://cmake.org/download/#latest) first.
 
 
 ## pico-webserver
