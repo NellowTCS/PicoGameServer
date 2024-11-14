@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sokoban Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        
+        .game-container {
+            margin-top: 20px;
+        }
+        
+        .game-board {
+            display: inline-block;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .row {
+            display: flex;
+        }
+        
+        .cell {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .wall {
+            background-color: #666;
+        }
+        
+        .box {
+            background-color: #f4a460;
+        }
+        
+        .target {
+            background-color: #90ee90;
+        }
+        
+        .player {
+            background-color: #4169e1;
+            border-radius: 50%;
+        }
+        
+        .box.on-target {
+            background-color: #32cd32;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .controls button {
+            margin: 5px;
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4169e1;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        
+        .controls button:hover:not(:disabled) {
+            background-color: #1e90ff;
+        }
+        
+        .controls button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .level-select {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            max-width: 400px;
+        }
+        
+        .level-button {
+            padding: 10px;
+            font-size: 14px;
+            background-color: #4169e1;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .level-button.locked {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .level-button.completed {
+            background-color: #32cd32;
+        }
+        
+        .level-info {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .moves {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sokoban</h1>
+    <div class="level-info">
+        Level <span id="level-number">1</span>: <span id="level-name">Tutorial</span>
+    </div>
+    <div class="game-container">
+        <div id="game-board" class="game-board"></div>
+    </div>
+    <div class="moves">Moves: <span id="moves-count">0</span></div>
+    <div class="controls">
+        <button onclick="resetLevel()">Reset Level</button>
+        <button id="prevButton" onclick="previousLevel()">Previous Level</button>
+        <button id="nextButton" onclick="nextLevel()" disabled>Next Level</button>
+    </div>
+    <div class="level-select" id="level-select"></div>
+
+    <script>
+        const LEVEL_NAMES = [
+            "Tutorial",
+            "Double Trouble",
+            "Triple Stack",
+            "Corner Challenge",
+            "The Maze",
+            "Tight Spaces",
+            "The Cross",
+            "Box Kingdom",
+            "The Spiral",
+            "Grand Finale"
+        ];
+
+        let unlockedLevels = [true];  // First level is unlocked by default
+        let completedLevels = [];
+
+        // Load progress from localStorage if available
+        if (localStorage.getItem('sokobanProgress')) {
+            const progress = JSON.parse(localStorage.getItem('sokobanProgress'));
+            unlockedLevels = progress.unlockedLevels;
+            completedLevels = progress.completedLevels;
+        }
+
+        const LEVELS = [
+            // Level 1: Introduction
+            [
+                "  WWWWW ",
+                "WWW   W ",
+                "W B T W ",
+                "W   P W ",
+                "WWWWWWW "
+            ],
+            // Level 2: Two Boxes
+            [
+                "WWWWWWW",
+                "W     W",
+                "W P   W",
+                "W B B W",
+                "W T T W",
+                "WWWWWWW"
+            ],
+            // Level 3: Three in a Row
+            [
+                " WWWWWWW",
+                " W     W",
+                " W B T W",
+                " W B T W",
+                "WW B T W",
+                "W  P   W",
+                "WWWWWWW "
+            ],
+            // Level 4: Corner Challenge
+            [
+                "WWWWWWW",
+                "W     W",
+                "W B W W",
+                "W T B W",
+                "W P T W",
+                "WWWWWWW"
+            ],
+            // Level 5: Maze
+            [
+                "WWWWWWWWW",
+                "W   W   W",
+                "W B   B W",
+                "W T W T W",
+                "W   P   W",
+                "WWWWWWWWW"
+            ],
+            // Level 6: Tight Spaces
+            [
+                "WWWWWWWW",
+                "W      W",
+                "W BTWT W",
+                "W B  P W",
+                "W  T B W",
+                "WWWWWWWW"
+            ],
+            // Level 7: The Cross
+            [
+                "WWWWWWWWW",
+                "W   T   W",
+                "W   B   W",
+                "WT BPB TW",
+                "W   B   W",
+                "W   T   W",
+                "WWWWWWWWW"
+            ],
+            // Level 8: The Challenge
+            [
+                "WWWWWWWWWW",
+                "W    B  TW",
+                "W BTW WT W",
+                "W      B W",
+                "W P  B  TW",
+                "WWWWWWWWWW"
+            ],
+            // Level 9: The Spiral
+            [
+                "WWWWWWWWW",
+                "WT     TW",
+                "W WWW B W",
+                "W W P B W",
+                "W W WWB W",
+                "WTB    TW",
+                "WWWWWWWWW"
+            ],
+            // Level 10: Grand Finale
+            [
+                "WWWWWWWWWW",
+                "W   T    W",
+                "W B WWW  W",
+                "WT B  B TW",
+                "WWW B B WW",
+                "W T P T  W",
+                "WWWWWWWWWW"
+            ]
+        ];
+
+        let currentLevel = 0;
+        let moveCount = 0;
+        let playerPos = { x: 0, y: 0 };
+        let gameState = [];
+        let boxPositions = [];
+        let targetPositions = [];
+
+        function initLevel(levelNumber) {
+            const level = LEVELS[levelNumber];
+            gameState = [];
+            boxPositions = [];
+            targetPositions = [];
+            moveCount = 0;
+            document.getElementById('moves-count').textContent = moveCount;
+            document.getElementById('level-number').textContent = levelNumber + 1;
+            document.getElementById('level-name').textContent = LEVEL_NAMES[levelNumber];
+            
+            // Update button states
+            document.getElementById('prevButton').disabled = levelNumber === 0;
+            document.getElementById('nextButton').disabled = !unlockedLevels[levelNumber + 1];
+            
+            // Update level select buttons
+            updateLevelSelect();
+
+            for (let y = 0; y < level.length; y++) {
+                const row = level[y];
+                gameState[y] = [];
+                for (let x = 0; x < row.length; x++) {
+                    const cell = row[x];
+                    if (cell === 'P') {
+                        playerPos = { x, y };
+                        gameState[y][x] = ' ';
+                    } else if (cell === 'B') {
+                        boxPositions.push({ x, y });
+                        gameState[y][x] = ' ';
+                    } else if (cell === 'T') {
+                        targetPositions.push({ x, y });
+                        gameState[y][x] = ' ';
+                    } else {
+                        gameState[y][x] = cell;
+                    }
+                }
+            }
+            renderGame();
+        }
+
+        function renderGame() {
+            const board = document.getElementById('game-board');
+            board.innerHTML = '';
+
+            for (let y = 0; y < gameState.length; y++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'row';
+                
+                for (let x = 0; x < gameState[y].length; x++) {
+                    const cellDiv = document.createElement('div');
+                    cellDiv.className = 'cell';
+
+                    if (gameState[y][x] === 'W') {
+                        cellDiv.classList.add('wall');
+                    }
+
+                    const isBox = boxPositions.some(box => box.x === x && box.y === y);
+                    const isTarget = targetPositions.some(target => target.x === x && target.y === y);
+                    
+                    if (isBox) {
+                        cellDiv.classList.add('box');
+                        if (isTarget) {
+                            cellDiv.classList.add('on-target');
+                        }
+                    } else if (isTarget) {
+                        cellDiv.classList.add('target');
+                    }
+
+                    if (playerPos.x === x && playerPos.y === y) {
+                        cellDiv.classList.add('player');
+                    }
+
+                    rowDiv.appendChild(cellDiv);
+                }
+                board.appendChild(rowDiv);
+            }
+
+            checkWinCondition();
+        }
+
+        function movePlayer(dx, dy) {
+            const newX = playerPos.x + dx;
+            const newY = playerPos.y + dy;
+
+            if (gameState[newY][newX] === 'W') return;
+
+            const boxIndex = boxPositions.findIndex(box => box.x === newX && box.y === newY);
+            if (boxIndex !== -1) {
+                const newBoxX = newX + dx;
+                const newBoxY = newY + dy;
+
+                if (gameState[newBoxY][newBoxX] === 'W') return;
+                if (boxPositions.some(box => box.x === newBoxX && box.y === newBoxY)) return;
+
+                boxPositions[boxIndex] = { x: newBoxX, y: newBoxY };
+            }
+
+            playerPos = { x: newX, y: newY };
+            moveCount++;
+            document.getElementById('moves-count').textContent = moveCount;
+            renderGame();
+        }
+
+        function updateLevelSelect() {
+            const levelSelect = document.getElementById('level-select');
+            levelSelect.innerHTML = '';
+            
+            for (let i = 0; i < LEVELS.length; i++) {
+                const button = document.createElement('button');
+                button.className = 'level-button';
+                button.textContent = `${i + 1}`;
+                
+                if (!unlockedLevels[i]) {
+                    button.classList.add('locked');
+                    button.disabled = true;
+                    button.title = 'Complete the previous level to unlock';
+                } else if (completedLevels.includes(i)) {
+                    button.classList.add('completed');
+                    button.title = LEVEL_NAMES[i] + ' (Completed)';
+                } else {
+                    button.title = LEVEL_NAMES[i];
+                }
+                
+                button.onclick = () => {
+                    if (unlockedLevels[i]) {
+                        currentLevel = i;
+                        initLevel(i);
+                    }
+                };
+                
+                levelSelect.appendChild(button);
+            }
+        }
+
+        function saveProgress() {
+            const progress = {
+                unlockedLevels,
+                completedLevels
+            };
+            localStorage.setItem('sokobanProgress', JSON.stringify(progress));
+        }
+
+        function checkWinCondition() {
+            const allBoxesOnTargets = boxPositions.every(box =>
+                targetPositions.some(target => target.x === box.x && target.y === box.y)
+            );
+
+            if (allBoxesOnTargets) {
+                setTimeout(() => {
+                    alert('Level Complete!');
+                    
+                    // Mark level as completed
+                    if (!completedLevels.includes(currentLevel)) {
+                        completedLevels.push(currentLevel);
+                    }
+                    
+                    // Unlock next level
+                    if (currentLevel < LEVELS.length - 1) {
+                        unlockedLevels[currentLevel + 1] = true;
+                    }
+                    
+                    // Save progress
+                    saveProgress();
+                    if (currentLevel < LEVELS.length - 1) {
+                        currentLevel++;
+                        initLevel(currentLevel);
+                    }
+                }, 100);
+            }
+        }
+
+        function resetLevel() {
+            initLevel(currentLevel);
+        }
+
+        function previousLevel() {
+            if (currentLevel > 0) {
+                currentLevel--;
+                initLevel(currentLevel);
+            }
+        }
+
+        function nextLevel() {
+            if (currentLevel < LEVELS.length - 1) {
+                currentLevel++;
+                initLevel(currentLevel);
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'ArrowUp':
+                    movePlayer(0, -1);
+                    break;
+                case 'ArrowDown':
+                    movePlayer(0, 1);
+                    break;
+                case 'ArrowLeft':
+                    movePlayer(-1, 0);
+                    break;
+                case 'ArrowRight':
+                    movePlayer(1, 0);
+                    break;
+                case 'r':
+                    resetLevel();
+                    break;
+            }
+        });
+
+        // Initialize the first level
+        initLevel(currentLevel);
+    </script>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simon Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #1a1a1a;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .title {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background-color: #333;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .colorButton {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            cursor: pointer;
+            transition: filter 0.2s;
+            border: 3px solid #333;
+        }
+
+        .colorButton:hover {
+            filter: brightness(1.2);
+        }
+
+        .colorButton.active {
+            filter: brightness(1.5);
+        }
+
+        #green {
+            top: 0;
+            left: 0;
+            background-color: #00c853;
+            border-top-left-radius: 100%;
+        }
+
+        #red {
+            top: 0;
+            right: 0;
+            background-color: #ff1744;
+            border-top-right-radius: 100%;
+        }
+
+        #yellow {
+            bottom: 0;
+            left: 0;
+            background-color: #ffd600;
+            border-bottom-left-radius: 100%;
+        }
+
+        #blue {
+            bottom: 0;
+            right: 0;
+            background-color: #2979ff;
+            border-bottom-right-radius: 100%;
+        }
+
+        #centerCircle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background-color: #333;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        #score {
+            color: white;
+            font-size: 1.2rem;
+            margin: 5px 0;
+        }
+
+        #startBtn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+
+        #startBtn:hover {
+            background-color: #45a049;
+        }
+
+        #indicator {
+            color: white;
+            font-size: 1rem;
+            margin-top: 1rem;
+            text-align: center;
+            min-height: 1.2rem;
+        }
+
+        #game-over {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 2;
+        }
+
+        #game-over button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">Simon Game</h1>
+    <div id="gameContainer">
+        <div class="colorButton" id="green" data-sound="1"></div>
+        <div class="colorButton" id="red" data-sound="2"></div>
+        <div class="colorButton" id="yellow" data-sound="3"></div>
+        <div class="colorButton" id="blue" data-sound="4"></div>
+        <div id="centerCircle">
+            <div id="score">Score: 0</div>
+            <button id="startBtn">Start</button>
+        </div>
+    </div>
+    <div id="indicator"></div>
+    <div id="game-over">
+        <h2>Game Over!</h2>
+        <p>Final Score: <span id="finalScore">0</span></p>
+        <button onclick="closeGameOver()">Play Again</button>
+    </div>
+
+    <script>
+        const buttons = document.querySelectorAll('.colorButton');
+        const startBtn = document.getElementById('startBtn');
+        const scoreElement = document.getElementById('score');
+        const indicatorElement = document.getElementById('indicator');
+        const gameOverElement = document.getElementById('game-over');
+        const finalScoreElement = document.getElementById('finalScore');
+
+        let sequence = [];
+        let playerSequence = [];
+        let score = 0;
+        let isPlaying = false;
+
+        // Create audio context and sounds
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const sounds = {
+            1: 261.63, // C4
+            2: 329.63, // E4
+            3: 392.00, // G4
+            4: 523.25  // C5
+        };
+
+        function playSound(frequency) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.1);
+            gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.5);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        function activateButton(button) {
+            button.classList.add('active');
+            playSound(sounds[button.dataset.sound]);
+            setTimeout(() => button.classList.remove('active'), 300);
+        }
+
+        async function playSequence() {
+            isPlaying = true;
+            indicatorElement.textContent = "Watch carefully...";
+            startBtn.disabled = true;
+
+            for (let i = 0; i < sequence.length; i++) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                activateButton(buttons[sequence[i]]);
+            }
+
+            isPlaying = false;
+            indicatorElement.textContent = "Your turn!";
+            startBtn.disabled = false;
+        }
+
+        function addToSequence() {
+            sequence.push(Math.floor(Math.random() * 4));
+            score = sequence.length - 1;
+            scoreElement.textContent = `Score: ${score}`;
+            playerSequence = [];
+            playSequence();
+        }
+
+        function gameOver() {
+            finalScoreElement.textContent = score;
+            gameOverElement.style.display = 'block';
+            sequence = [];
+            playerSequence = [];
+            score = 0;
+            scoreElement.textContent = 'Score: 0';
+            indicatorElement.textContent = '';
+        }
+
+        function closeGameOver() {
+            gameOverElement.style.display = 'none';
+        }
+
+        buttons.forEach((button, index) => {
+            button.addEventListener('click', () => {
+                if (isPlaying) return;
+
+                activateButton(button);
+                playerSequence.push(index);
+
+                if (playerSequence[playerSequence.length - 1] !== sequence[playerSequence.length - 1]) {
+                    gameOver();
+                    return;
+                }
+
+                if (playerSequence.length === sequence.length) {
+                    setTimeout(addToSequence, 1000);
+                }
+            });
+        });
+
+        startBtn.addEventListener('click', () => {
+            if (sequence.length === 0) {
+                addToSequence();
+            }
+        });
+    </script>
+</body>
+</html>

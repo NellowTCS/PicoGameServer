@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mini Pong</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #1a1a1a;
+            font-family: Arial, sans-serif;
+        }
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background: #000;
+            border: 2px solid #444;
+            border-radius: 8px;
+        }
+        #gameCanvas {
+            border-radius: 6px;
+        }
+        #score {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+        }
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 48px;
+            text-align: center;
+            display: none;
+        }
+        .game-over button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background: #444;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .game-over button:hover {
+            background: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="score">Score: 0</div>
+        <div id="instructions">Use ←/→ arrows or mouse/touch to move paddle</div>
+        <div class="game-over">
+            <div>Game Over!</div>
+            <div id="finalScore"></div>
+            <button onclick="resetGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const gameOverScreen = document.querySelector('.game-over');
+        const finalScoreElement = document.getElementById('finalScore');
+        let animationId = null;
+
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = gameContainer.clientWidth;
+            canvas.height = gameContainer.clientHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Game objects
+        const paddle = {
+            width: 100,
+            height: 10,
+            x: 0,
+            y: 0,
+            speed: 8,
+            color: '#fff',
+            targetX: 0
+        };
+
+        const ball = {
+            size: 8,
+            x: 0,
+            y: 0,
+            speedX: 5,
+            speedY: -5,
+            color: '#fff'
+        };
+
+        // Game state
+        let score = 0;
+        let isGameOver = false;
+
+        // Input handling
+        let rightPressed = false;
+        let leftPressed = false;
+        let mouseX = 0;
+        let lastMouseX = 0;
+        let isTouching = false;
+
+        function handleKeyDown(e) {
+            if (e.key === 'ArrowRight') rightPressed = true;
+            if (e.key === 'ArrowLeft') leftPressed = true;
+        }
+
+        function handleKeyUp(e) {
+            if (e.key === 'ArrowRight') rightPressed = false;
+            if (e.key === 'ArrowLeft') leftPressed = false;
+        }
+
+        function handleMouseMove(e) {
+            const rect = canvas.getBoundingClientRect();
+            const newMouseX = e.clientX - rect.left;
+            const mouseDelta = newMouseX - lastMouseX;
+            paddle.x += mouseDelta;
+            
+            // Constrain paddle to canvas bounds
+            if (paddle.x < 0) paddle.x = 0;
+            if (paddle.x + paddle.width > canvas.width) paddle.x = canvas.width - paddle.width;
+            
+            lastMouseX = newMouseX;
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const newTouchX = e.touches[0].clientX - rect.left;
+            const touchDelta = newTouchX - lastMouseX;
+            paddle.x += touchDelta;
+            
+            // Constrain paddle to canvas bounds
+            if (paddle.x < 0) paddle.x = 0;
+            if (paddle.x + paddle.width > canvas.width) paddle.x = canvas.width - paddle.width;
+            
+            lastMouseX = newTouchX;
+            isTouching = true;
+        }
+
+        function handleTouchEnd() {
+            isTouching = false;
+        }
+
+        // Initialize game
+        function initGame() {
+            paddle.x = canvas.width / 2 - paddle.width / 2;
+            paddle.y = canvas.height - paddle.height - 10;
+            lastMouseX = paddle.x + paddle.width / 2;
+            
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            
+            score = 0;
+            isGameOver = false;
+            updateScore();
+            
+            // Add event listeners
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvas.addEventListener('touchend', handleTouchEnd);
+        }
+
+        // Update game objects
+        function update() {
+            if (isGameOver) return;
+
+            // Update paddle position based on keyboard input
+            if (rightPressed && paddle.x + paddle.width < canvas.width) {
+                paddle.x += paddle.speed;
+            }
+            if (leftPressed && paddle.x > 0) {
+                paddle.x -= paddle.speed;
+            }
+
+            // Update ball position
+            ball.x += ball.speedX;
+            ball.y += ball.speedY;
+
+            // Ball collision with walls
+            if (ball.x <= 0 || ball.x >= canvas.width - ball.size) {
+                ball.speedX = -ball.speedX;
+            }
+            if (ball.y <= 0) {
+                ball.speedY = -ball.speedY;
+            }
+
+            // Ball collision with paddle
+            if (ball.y + ball.size >= paddle.y && 
+                ball.x >= paddle.x && 
+                ball.x <= paddle.x + paddle.width) {
+                ball.speedY = -ball.speedY;
+                
+                // Add angle based on where ball hits the paddle
+                const hitLocation = (ball.x - paddle.x) / paddle.width;
+                ball.speedX = 5 * (hitLocation - 0.5) * 2; // Varies from -5 to 5
+                
+                score += 10;
+                updateScore();
+                
+                // Increase difficulty
+                if (score % 50 === 0) {
+                    const speedIncrease = 1.1;
+                    const maxSpeed = 15;
+                    ball.speedY = Math.min(ball.speedY * speedIncrease, -maxSpeed);
+                }
+            }
+
+            // Game over condition
+            if (ball.y >= canvas.height) {
+                gameOver();
+            }
+        }
+
+        // Render game objects
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw paddle
+            ctx.fillStyle = paddle.color;
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+
+            // Draw ball
+            ctx.fillStyle = ball.color;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.size, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw particles (optional visual effect)
+            if (score > 0) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                for (let i = 0; i < score/10; i++) {
+                    ctx.beginPath();
+                    ctx.arc(
+                        Math.random() * canvas.width,
+                        Math.random() * canvas.height,
+                        1,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.fill();
+                }
+            }
+        }
+
+        function updateScore() {
+            scoreElement.textContent = `Score: ${score}`;
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            gameOverScreen.style.display = 'block';
+            finalScoreElement.textContent = `Final Score: ${score}`;
+            cancelAnimationFrame(animationId);
+        }
+
+        function resetGame() {
+            gameOverScreen.style.display = 'none';
+            initGame();
+            startGameLoop();
+        }
+
+        // Game loop
+        function startGameLoop() {
+            function gameLoop() {
+                update();
+                draw();
+                if (!isGameOver) {
+                    animationId = requestAnimationFrame(gameLoop);
+                }
+            }
+            gameLoop();
+        }
+
+        // Start game
+        initGame();
+        startGameLoop();
+    </script>
+</body>
+</html>

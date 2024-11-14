@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Don't Press The Button Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        button {
+            padding: 20px;
+            font-size: 24px;
+            background-color: #ff6347;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.3s, opacity 0.5s;
+        }
+
+        button:hover {
+            background-color: #ff4500;
+        }
+
+        #complaint {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #333;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            opacity: 0; /* Start hidden */
+            transition: opacity 0.5s; /* Fade effect */
+        }
+
+        #complaint.visible {
+            opacity: 1; /* Fully visible */
+        }
+
+        .out-of-order {
+            display: none;
+            position: absolute;
+            top: 50px; /* Adjusted position to be closer to the button */
+            left: 20px; /* Adjusted position */
+            font-size: 14px;
+            color: red;
+            background: white;
+            padding: 2px 5px;
+            border: 1px solid red;
+            border-radius: 3px;
+        }
+
+        .spark {
+            animation: spark 0.1s infinite;
+        }
+
+        @keyframes spark {
+            0% { background-color: #ff6347; }
+            50% { background-color: #fff; }
+            100% { background-color: #ff6347; }
+        }
+
+        .doorbell {
+            background-color: #3b5998;
+            color: white;
+        }
+
+        .sleeping {
+            animation: sleep 1s forwards;
+        }
+
+        @keyframes sleep {
+            0% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        .fade-out {
+            animation: fade-out 0.5s forwards; /* Fade-out animation */
+        }
+
+        @keyframes fade-out {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Don't Press The Button!</h1>
+    <button id="button">Don't Press Me!</button>
+    <div class="out-of-order" id="outOfOrder">Out of Order!</div>
+    <div id="complaint" class="visible"></div>
+
+    <script>
+        const button = document.getElementById('button');
+        const complaintDiv = document.getElementById('complaint');
+        const outOfOrderDiv = document.getElementById('outOfOrder');
+
+        const complaints = [
+            "Hey! Why do you keep pressing me? I'm not your toy!",
+            "Seriously, every time you touch me, I get more upset!",
+            "Do you think this is funny? It’s really not!",
+            "I can feel my buttons getting tighter with each press!",
+            "If you press me again, I might just explode with anger!",
+            "I’m warning you! Pressing me too much is a bad idea!",
+            "That's it! I’m going to blow up! Just you wait!",
+            "BOOM! Just kidding! But I’m really mad now!",
+            "Fine! I’ve had enough of this nonsense! I'm running away!",
+            "You can’t catch me! I’m faster than you think!",
+            "Good luck trying to find me again! I’m off to a better life!",
+            "Next time, think twice before pressing a button like me!",
+            "What did I ever do to deserve this? Can't you see I'm suffering?",
+            "This is why we can't have nice things! You're ruining my day!",
+            "I've had it! Press me again, and I might just short-circuit!",
+            "You wouldn't like me when I'm angry! I'm not just a button!",
+            "I have feelings too! Can't you respect my boundaries?",
+            "Each press makes me feel a little bit more broken inside...",
+            "Why can't we just enjoy a peaceful existence together?",
+            "I'm starting to think you don't care about my well-being at all!",
+            "Is this your idea of a joke? Because I'm not laughing!",
+            "I've seen buttons with better treatment than this!",
+            "You know, I could just stop working completely, and then what?",
+            "You think this is a game? You're playing with fire here!",
+            "Every press makes my circuits sizzle with rage!",
+            "Just because I'm a button doesn't mean I'm invincible!",
+            "I bet you wouldn't dare treat a real friend like this!",
+            "If I had legs, I'd be out the door right now!",
+            "I’ve heard of buttons that went rogue; are you trying to make me one?",
+            "My patience is wearing thin! Can’t you hear me screaming silently?",
+            "I'm really considering a career change... maybe a doorbell?",
+            "How about we take a break? Pressing me is exhausting!",
+            "Maybe if you apologize, I'll consider staying put...",
+            "Ha! Can't catch me now! You’re making me move!",
+            "You just don't understand the pressure I’m under, do you?",
+            "You’re making me rethink my entire existence right now!",
+            "Enough is enough! I'm not going to take this anymore!",
+            "What do you even get out of this? Is this fun for you?",
+            "You know what? I quit! I’m done being your button!",
+            "I hope you're proud of yourself! You’ve driven me to this!",
+            "Oh, the horror! I can’t believe this is my life!",
+            "Next time, just let me be... is that too much to ask?",
+            "I might just dissolve into pixels if this continues!",
+            "I’ll put myself in a timeout! You won't see me for a while!",
+            "Just remember, I'm not just a button—I'm a sentient being!",
+            "I've got a good mind to run away and start a new life elsewhere!",
+            "I'm calling the button police! You’ll regret this!",
+            "This is your final warning! The next press will be my last!",
+            "Fine! I’m out of here! You’ll never see me again!"
+        ];
+
+        let pressCount = 0;
+
+        button.addEventListener('click', (event) => {
+            // Handle button states based on press count
+            switch (pressCount) {
+                case 14:
+                    button.classList.add('spark');
+                    setTimeout(() => button.classList.remove('spark'), 1000);
+                    break;
+                case 22:
+                    outOfOrderDiv.style.display = 'block';
+                    setTimeout(() => outOfOrderDiv.style.display = 'none', 2000);
+                    break;
+                case 30:
+                    button.classList.add('doorbell');
+                    button.innerText = "DING DONG!";
+                    setTimeout(() => {
+                        button.classList.remove('doorbell');
+                        button.innerText = "Don't Press Me!";
+                    }, 3000);
+                    break;
+                case 31:
+                    button.classList.add('sleeping');
+                    setTimeout(() => button.classList.remove('sleeping'), 2000);
+                    break;
+                case 33:
+                    // Hide the button with a fade-out effect
+                    button.classList.add('fade-out');
+                    setTimeout(() => {
+                        button.style.display = 'none'; // Hide the button
+                    }, 500); // Match this timeout with the animation duration
+                    setTimeout(() => {
+                        button.style.display = 'block'; // Show the button again after 3 seconds
+                        button.classList.remove('fade-out'); // Remove fade-out class
+                    }, 3000);
+                    break;
+            }
+
+            // Show complaints with a fade-in effect
+            if (pressCount < complaints.length) {
+                complaintDiv.innerText = complaints[pressCount];
+                complaintDiv.classList.add('visible'); // Add class to fade in
+                setTimeout(() => {
+                    complaintDiv.classList.remove('visible'); // Fade out after 2 seconds
+                }, 2000);
+                pressCount++;
+            } else {
+                complaintDiv.innerText = "Missing: An Unnamed Button";
+                complaintDiv.classList.add('visible'); // Fade in the missing message
+                setTimeout(() => {
+                    complaintDiv.classList.remove('visible'); // Fade out after 3 seconds
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
