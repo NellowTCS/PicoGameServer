@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flappy Box</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #87CEEB;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        #gameContainer {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            margin: 20px;
+            background: #87CEEB;
+            border: 2px solid #333;
+            overflow: hidden;
+        }
+        #player {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: #FFD700;
+            border-radius: 5px;
+            left: 50px;
+            transition: transform 0.1s;
+            display: none;
+            z-index: 1;
+        }
+        .pipe {
+            position: absolute;
+            width: 60px;
+            background: #2E8B57;
+            border: 2px solid #006400;
+            box-sizing: border-box;
+        }
+        .pipe-container {
+            position: absolute;
+            width: 64px; /* Width of pipe + borders */
+            height: 100%;
+            z-index: 0;
+        }
+        #score {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px;
+            color: #333;
+            display: none;
+            z-index: 2;
+        }
+        .modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 3;
+        }
+        #startScreen {
+            display: block;
+        }
+        #gameOver {
+            display: none;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .instructions {
+            font-size: 14px;
+            color: #666;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="score">Score: 0</div>
+    <div id="gameContainer">
+        <div id="player"></div>
+        <div id="startScreen" class="modal">
+            <h2>Flappy Box</h2>
+            <p class="instructions">Press SPACE or Click to jump</p>
+            <button onclick="startGame()">Play Game</button>
+        </div>
+        <div id="gameOver" class="modal">
+            <h2>Game Over!</h2>
+            <p id="finalScore">Score: 0</p>
+            <button onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const player = document.getElementById('player');
+        const gameContainer = document.getElementById('gameContainer');
+        const scoreElement = document.getElementById('score');
+        const gameOverScreen = document.getElementById('gameOver');
+        const startScreen = document.getElementById('startScreen');
+        const finalScoreElement = document.getElementById('finalScore');
+
+        let playerY = 300;
+        let velocity = 0;
+        let score = 0;
+        let gameActive = false;
+        let gameStarted = false;
+        let pipes = [];
+        let gravity = 0.5;
+        let jumpStrength = -10;
+        let pipeGap = 200;
+        let gameLoop;
+        let pipeLoop;
+
+        function startGame() {
+            if (gameStarted) return;
+            
+            gameStarted = true;
+            gameActive = true;
+            startScreen.style.display = 'none';
+            player.style.display = 'block';
+            scoreElement.style.display = 'block';
+            playerY = 300;
+            player.style.top = playerY + 'px';
+            
+            // Start game loops
+            gameLoop = setInterval(() => {
+                updatePlayer();
+                updatePipes();
+            }, 20);
+            pipeLoop = setInterval(createPipe, 3000);
+            
+            // Create first pipe
+            setTimeout(createPipe, 1000);
+        }
+
+        function updatePlayer() {
+            if (!gameActive) return;
+            
+            velocity += gravity;
+            playerY += velocity;
+            
+            // Keep player within bounds
+            if (playerY < 0) {
+                playerY = 0;
+                velocity = 0;
+            }
+            if (playerY > gameContainer.offsetHeight - 40) {
+                gameOver();
+            }
+            
+            player.style.top = playerY + 'px';
+            player.style.transform = `rotate(${velocity * 2}deg)`;
+        }
+
+        function createPipe() {
+            if (!gameActive) return;
+            
+            const gapPosition = Math.random() * (gameContainer.offsetHeight - pipeGap - 100) + 50;
+            
+            // Create pipe container
+            const pipeContainer = document.createElement('div');
+            pipeContainer.className = 'pipe-container';
+            pipeContainer.style.left = gameContainer.offsetWidth + 'px';
+            
+            // Create top pipe
+            const topPipe = document.createElement('div');
+            topPipe.className = 'pipe';
+            topPipe.style.height = gapPosition + 'px';
+            topPipe.style.top = '0';
+            
+            // Create bottom pipe
+            const bottomPipe = document.createElement('div');
+            bottomPipe.className = 'pipe';
+            const bottomHeight = gameContainer.offsetHeight - gapPosition - pipeGap;
+            bottomPipe.style.height = bottomHeight + 'px';
+            bottomPipe.style.bottom = '0';
+            
+            // Add pipes to container
+            pipeContainer.appendChild(topPipe);
+            pipeContainer.appendChild(bottomPipe);
+            
+            // Add container to game
+            gameContainer.appendChild(pipeContainer);
+            
+            // Add to pipes array
+            pipes.push({
+                element: pipeContainer,
+                passed: false
+            });
+        }
+
+        function updatePipes() {
+            if (!gameActive) return;
+            
+            pipes.forEach((pipe, index) => {
+                const currentLeft = parseFloat(pipe.element.style.left);
+                if (currentLeft < -64) {  // Width of pipe container
+                    pipe.element.remove();
+                    pipes.splice(index, 1);
+                } else {
+                    pipe.element.style.left = (currentLeft - 2) + 'px';
+                    
+                    // Score when passing pipe
+                    if (!pipe.passed && currentLeft < 50 - 60) {
+                        pipe.passed = true;
+                        score++;
+                        scoreElement.textContent = `Score: ${score}`;
+                    }
+                    
+                    // Collision detection
+                    const playerRect = player.getBoundingClientRect();
+                    const pipeElements = pipe.element.getElementsByClassName('pipe');
+                    
+                    for (let pipeElement of pipeElements) {
+                        const pipeRect = pipeElement.getBoundingClientRect();
+                        if (playerRect.right > pipeRect.left && 
+                            playerRect.left < pipeRect.right && 
+                            playerRect.bottom > pipeRect.top && 
+                            playerRect.top < pipeRect.bottom) {
+                            gameOver();
+                        }
+                    }
+                }
+            });
+        }
+
+        function jump() {
+            if (gameActive) {
+                velocity = jumpStrength;
+            }
+        }
+
+        function gameOver() {
+            gameActive = false;
+            clearInterval(gameLoop);
+            clearInterval(pipeLoop);
+            gameOverScreen.style.display = 'block';
+            finalScoreElement.textContent = `Score: ${score}`;
+        }
+
+        function restartGame() {
+            // Reset game state
+            playerY = 300;
+            velocity = 0;
+            score = 0;
+            gameStarted = false;
+            pipes.forEach(pipe => pipe.element.remove());
+            pipes = [];
+            
+            // Reset UI
+            gameOverScreen.style.display = 'none';
+            startScreen.style.display = 'block';
+            scoreElement.textContent = 'Score: 0';
+            player.style.display = 'none';
+            scoreElement.style.display = 'none';
+            
+            // Reset player position
+            player.style.top = playerY + 'px';
+            player.style.transform = 'rotate(0deg)';
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                if (!gameStarted) {
+                    startGame();
+                }
+                jump();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            // Prevent jump when clicking buttons
+            if (e.target.tagName !== 'BUTTON') {
+                if (!gameStarted) {
+                    startGame();
+                }
+                jump();
+            }
+        });
+    </script>
+</body>
+</html>

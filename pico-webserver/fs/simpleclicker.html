@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Improved Clicker Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .game-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .click-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.3s;
+            margin: 20px 0;
+        }
+
+        .click-button:active {
+            transform: scale(0.95);
+        }
+
+        .score-container {
+            font-size: 2rem;
+            margin: 20px 0;
+            color: #333;
+        }
+
+        .upgrades-container {
+            display: grid;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .upgrade-button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upgrade-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .floating-score {
+            position: absolute;
+            animation: float-up 1s ease-out;
+            pointer-events: none;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Super Clicker</h1>
+        
+        <div class="score-container">
+            Score: <span id="score">0</span>
+        </div>
+        
+        <button class="click-button" id="clickButton">
+            Click Me!
+        </button>
+
+        <div class="stats">
+            <div class="stat-item">
+                Clicks per second: <span id="cps">0</span>
+            </div>
+            <div class="stat-item">
+                Click power: <span id="clickPower">1</span>
+            </div>
+        </div>
+
+        <div class="upgrades-container">
+            <button class="upgrade-button" id="powerUpgrade">
+                <span>Upgrade Click Power</span>
+                <span>Cost: <span id="powerCost">10</span></span>
+            </button>
+            <button class="upgrade-button" id="autoClickerUpgrade">
+                <span>Buy Auto Clicker</span>
+                <span>Cost: <span id="autoClickerCost">50</span></span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        let clickPower = 1;
+        let autoClickers = 0;
+        let powerUpgradeCost = 10;
+        let autoClickerCost = 50;
+        let lastUpdate = Date.now();
+        let clicks = 0;
+        let lastClickCount = 0;
+
+        const scoreElement = document.getElementById('score');
+        const clickPowerElement = document.getElementById('clickPower');
+        const cpsElement = document.getElementById('cps');
+        const powerCostElement = document.getElementById('powerCost');
+        const autoClickerCostElement = document.getElementById('autoClickerCost');
+        const clickButton = document.getElementById('clickButton');
+        const powerUpgradeButton = document.getElementById('powerUpgrade');
+        const autoClickerUpgradeButton = document.getElementById('autoClickerUpgrade');
+
+        function updateScore(amount) {
+            score += amount;
+            scoreElement.textContent = Math.floor(score);
+            updateUpgradeButtons();
+        }
+
+        function createFloatingScore(amount) {
+            const floatingScore = document.createElement('div');
+            floatingScore.className = 'floating-score';
+            floatingScore.textContent = `+${amount}`;
+            
+            // Position relative to click button
+            const buttonRect = clickButton.getBoundingClientRect();
+            floatingScore.style.left = `${buttonRect.left + Math.random() * buttonRect.width}px`;
+            floatingScore.style.top = `${buttonRect.top + Math.random() * buttonRect.height}px`;
+            
+            document.body.appendChild(floatingScore);
+            
+            setTimeout(() => {
+                document.body.removeChild(floatingScore);
+            }, 1000);
+        }
+
+        function updateUpgradeButtons() {
+            powerUpgradeButton.disabled = score < powerUpgradeCost;
+            autoClickerUpgradeButton.disabled = score < autoClickerCost;
+        }
+
+        function buyPowerUpgrade() {
+            if (score >= powerUpgradeCost) {
+                score -= powerUpgradeCost;
+                clickPower++;
+                powerUpgradeCost = Math.floor(powerUpgradeCost * 1.5);
+                powerCostElement.textContent = powerUpgradeCost;
+                clickPowerElement.textContent = clickPower;
+                updateScore(0); // Updates display and buttons
+            }
+        }
+
+        function buyAutoClicker() {
+            if (score >= autoClickerCost) {
+                score -= autoClickerCost;
+                autoClickers++;
+                autoClickerCost = Math.floor(autoClickerCost * 1.5);
+                autoClickerCostElement.textContent = autoClickerCost;
+                updateScore(0); // Updates display and buttons
+            }
+        }
+
+        // Click handler
+        clickButton.addEventListener('click', () => {
+            clicks++;
+            updateScore(clickPower);
+            createFloatingScore(clickPower);
+        });
+
+        // Upgrade handlers
+        powerUpgradeButton.addEventListener('click', buyPowerUpgrade);
+        autoClickerUpgradeButton.addEventListener('click', buyAutoClicker);
+
+        // Auto clickers and CPS calculation
+        setInterval(() => {
+            const now = Date.now();
+            const delta = (now - lastUpdate) / 1000;
+            
+            // Auto clickers
+            if (autoClickers > 0) {
+                const autoClickerGain = autoClickers * delta;
+                updateScore(autoClickerGain);
+            }
+            
+            // Calculate CPS
+            const clicksPerSecond = (clicks - lastClickCount) / delta;
+            cpsElement.textContent = clicksPerSecond.toFixed(1);
+            
+            lastClickCount = clicks;
+            lastUpdate = now;
+        }, 100);
+
+        // Initial button state
+        updateUpgradeButtons();
+    </script>
+</body>
+</html>

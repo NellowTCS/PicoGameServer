@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        
+        .bg-image {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background-image: url('pico.jpeg');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+        
+        .bg-text {
+            text-align: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            z-index: 2;
+            width: 80%;
+            max-width: 800px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+        
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 2px solid white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 2;
+        }
+        
+        button:hover {
+            background-color: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-image">
+        <div class="overlay"></div>
+        <div class="bg-text">
+            <h1 style="font-size:50px">Basic HTML games</h1>
+            <form>
+            <button type="submit" formaction="teleporterdashlite/teleporterdashmenu.html">Teleporter Dash</button>
+            <button type="submit" formaction="asteroids.html">Asteroids</button>
+            <button type="submit" formaction="breakout.html">Breakout</button>
+            <button type="submit" formaction="bubbleshooter.html">Bubble Shooter</button>
+            <button type="submit" formaction="classicpong.html">Classic Pong</button>
+            <button type="submit" formaction="dontpressthebutton.html">Don't Press The Button</button>
+            <button type="submit" formaction="doodlejump.html">Doodle Jump</button>
+            <button type="submit" formaction="dwarvesthereandbackagain.html">Dwarves - There and Back Again</button>
+            <button type="submit" formaction="exo.html">Exo</button>
+            <button type="submit" formaction="flappybox.html">Flappy Box</button>
+            <button type="submit" formaction="frogger.html">Frogger</button>
+            <button type="submit" formaction="guessthenumber.html">Guess The Number</button>
+            <button type="submit" formaction="memorygame(concentration).html">Memory Game (Concentration)</button>
+            <button type="submit" formaction="minipong.html">Mini Pong</button>
+            <button type="submit" formaction="miniracing.html">Mini Racing</button>
+            <button type="submit" formaction="racer.html">Racer</button>
+            <button type="submit" formaction="reactiontime.html">Reaction Time</button>
+            <button type="submit" formaction="retrohaunt.html">Retro Haunt</button>
+            <button type="submit" formaction="simon.html">Simon</button>
+            <button type="submit" formaction="simpleclicker.html">Simple Clicker</button>
+            <button type="submit" formaction="simplesnake.html">Simple Snake</button>
+            <button type="submit" formaction="simplydontpressthebutton.html">Simply Don't Press The Button</button>
+            <button type="submit" formaction="snake.html">Snake</button>
+            <button type="submit" formaction="sokoban.html">Sokoban</button>
+            <button type="submit" formaction="tetris.html">Tetris</button>
+            <button type="submit" formaction="tictactoe.html">Tic Tac Toe</button>
+            <button type="submit" formaction="wander.html">Wander</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

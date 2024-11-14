@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess the Number</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            background-color: #f0f2f5;
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .setup-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        .range-inputs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        input {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .hint {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .stats {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Guess the Number</h1>
+        
+        <div class="setup-section">
+            <h2>Set Range</h2>
+            <div class="range-inputs">
+                <div>
+                    <label for="minNumber">Min:</label>
+                    <input type="number" id="minNumber" value="1">
+                </div>
+                <div>
+                    <label for="maxNumber">Max:</label>
+                    <input type="number" id="maxNumber" value="10">
+                </div>
+            </div>
+            <button onclick="startGame()">Start New Game</button>
+        </div>
+
+        <div id="gameSection" style="display: none;">
+            <p id="rangeDisplay"></p>
+            <div>
+                <label for="guess">Your guess:</label>
+                <input type="number" id="guess" min="1" max="10">
+                <button onclick="checkGuess()">Submit Guess</button>
+            </div>
+            <div id="message" class="message" style="display: none;"></div>
+            <div class="stats">
+                <p>Attempts: <span id="attempts">0</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let targetNumber;
+        let attempts = 0;
+        let minNumber = 1;
+        let maxNumber = 10;
+        let gameActive = false;
+
+        function startGame() {
+            minNumber = parseInt(document.getElementById('minNumber').value);
+            maxNumber = parseInt(document.getElementById('maxNumber').value);
+
+            if (minNumber >= maxNumber) {
+                showMessage('Maximum number must be greater than minimum number!', 'error');
+                return;
+            }
+
+            gameActive = true;
+            attempts = 0;
+            document.getElementById('attempts').textContent = attempts;
+            targetNumber = Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
+            
+            document.getElementById('gameSection').style.display = 'block';
+            document.getElementById('rangeDisplay').textContent = 
+                `I'm thinking of a number between ${minNumber} and ${maxNumber}`;
+            document.getElementById('guess').min = minNumber;
+            document.getElementById('guess').max = maxNumber;
+            document.getElementById('message').style.display = 'none';
+            document.getElementById('guess').value = '';
+            document.getElementById('guess').focus();
+        }
+
+        function checkGuess() {
+            if (!gameActive) return;
+
+            const guessInput = document.getElementById('guess');
+            const guess = parseInt(guessInput.value);
+
+            if (isNaN(guess) || guess < minNumber || guess > maxNumber) {
+                showMessage(`Please enter a valid number between ${minNumber} and ${maxNumber}`, 'error');
+                return;
+            }
+
+            attempts++;
+            document.getElementById('attempts').textContent = attempts;
+
+            if (guess === targetNumber) {
+                gameActive = false;
+                showMessage(`Congratulations! You got it in ${attempts} attempts!`, 'success');
+            } else {
+                const hint = guess < targetNumber ? 'higher' : 'lower';
+                showMessage(`Try a ${hint} number!`, 'hint');
+            }
+
+            guessInput.value = '';
+            guessInput.focus();
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+        }
+
+        // Add event listener for Enter key
+        document.getElementById('guess').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkGuess();
+            }
+        });
+
+        // Initialize the game
+        document.getElementById('gameSection').style.display = 'none';
+    </script>
+</body>
+</html>

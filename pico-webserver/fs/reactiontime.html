@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reaction Time Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #gameButton {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: none;
+            background-color: #ff4444;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 20px 0;
+        }
+
+        #gameButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        #gameButton.waiting {
+            background-color: #ff4444;
+        }
+
+        #gameButton.ready {
+            background-color: #4CAF50;
+        }
+
+        #gameButton.tooEarly {
+            background-color: #ff9800;
+        }
+
+        #startButton {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #startButton:hover {
+            background-color: #45a049;
+        }
+
+        #startButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        #results {
+            margin: 20px 0;
+            font-size: 18px;
+        }
+
+        #bestTime {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .instruction {
+            color: #666;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Reaction Time Game</h1>
+        <p class="instruction">Wait for the button to turn green, then click as quickly as you can!</p>
+        <button id="startButton">Start Game</button>
+        <button id="gameButton" disabled>Get Ready!</button>
+        <div id="results">
+            <p>Your time: <span id="currentTime">-</span> ms</p>
+            <p>Best time: <span id="bestTime">-</span> ms</p>
+            <p>Average time: <span id="averageTime">-</span> ms</p>
+        </div>
+    </div>
+
+    <script>
+        const gameButton = document.getElementById('gameButton');
+        const startButton = document.getElementById('startButton');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const bestTimeDisplay = document.getElementById('bestTime');
+        const averageTimeDisplay = document.getElementById('averageTime');
+
+        let startTime;
+        let timeoutId;
+        let isGameActive = false;
+        let times = [];
+        let bestTime = Infinity;
+
+        function startGame() {
+            startButton.disabled = true;
+            gameButton.disabled = false;
+            gameButton.textContent = "Wait...";
+            gameButton.className = "waiting";
+            isGameActive = true;
+
+            // Random delay between 1 and 5 seconds
+            const delay = Math.random() * 4000 + 1000;
+            timeoutId = setTimeout(() => {
+                if (isGameActive) {
+                    gameButton.className = "ready";
+                    gameButton.textContent = "Click Now!";
+                    startTime = Date.now();
+                }
+            }, delay);
+        }
+
+        function endGame() {
+            clearTimeout(timeoutId);
+            isGameActive = false;
+            gameButton.disabled = true;
+            startButton.disabled = false;
+        }
+
+        function updateStats(reactionTime) {
+            times.push(reactionTime);
+            if (reactionTime < bestTime) {
+                bestTime = reactionTime;
+                bestTimeDisplay.textContent = bestTime;
+            }
+
+            const average = Math.round(times.reduce((a, b) => a + b) / times.length);
+            currentTimeDisplay.textContent = reactionTime;
+            averageTimeDisplay.textContent = average;
+        }
+
+        startButton.addEventListener('click', startGame);
+
+        gameButton.addEventListener('click', () => {
+            if (!isGameActive) return;
+
+            if (gameButton.className === "waiting") {
+                // Clicked too early
+                gameButton.className = "tooEarly";
+                gameButton.textContent = "Too Early! Try Again";
+                endGame();
+                currentTimeDisplay.textContent = "Too Early!";
+                return;
+            }
+
+            if (gameButton.className === "ready") {
+                const reactionTime = Date.now() - startTime;
+                updateStats(reactionTime);
+                endGame();
+            }
+        });
+
+        // Enable keyboard space bar support
+        document.addEventListener('keydown', (event) => {
+            if (event.code === 'Space') {
+                if (!startButton.disabled) {
+                    startGame();
+                } else if (!gameButton.disabled) {
+                    gameButton.click();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
