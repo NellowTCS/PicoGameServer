@@ -9,7 +9,7 @@ Run a USB game server on your Raspberry Pi Pico or Pico H to play games locally 
 [Source for Exo](https://github.com/js13kGames/exo)<br/>
 [Source for Racer](https://github.com/js13kGames/racer)<br/>
 [Source for Retrohaunt](https://github.com/js13kGames/retrohaunt)<br/>
-[Source for Teleporter Dash (made by me)](https://github.com/NellowTCS/teleporter-dash)<br/>
+[Source for Teleporter Dash (made by me)](https://github.com/TeleporterDash/TeleporterDash)<br/>
 [Source for Wander](https://github.com/js13kGames/wander)<br/>
 
 ## Games Included
