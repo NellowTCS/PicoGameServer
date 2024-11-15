@@ -178,6 +178,13 @@ Run a USB game server on your Raspberry Pi Pico or Pico H to play games locally 
 #### How to Play
 - Cover all circles with boxes to win.<br/>
 
+### Teleporter Dash
+<img width="661" alt="teleporterdash" src="https://github.com/user-attachments/assets/bc50065e-2d75-4f0d-8f14-3645ec4dbb7e"><br/>
+#### Controls
+- Up arrow key to jump.
+#### How to Play
+- Get through levels.<br/>
+
 ### Super Clicker
 <img width="679" alt="superclicker" src="https://github.com/user-attachments/assets/da50826b-dbff-4b98-ae29-aaec130b8395"><br/>
 #### Controls
