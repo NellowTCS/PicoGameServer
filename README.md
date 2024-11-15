@@ -210,13 +210,14 @@ Run a USB game server on your Raspberry Pi Pico or Pico H to play games locally 
 #### How to Play
 - Go through the checkpoints and reach the end of the level.<br/>
 
-
-## pico-webserver
+## Building your own version
+- Below are instructions to help with building your own version.
+### pico-webserver
 
 Webserver example that came with TinyUSB slightly modified to run on a Raspberry Pi Pico.
 Lets the Pico pretend to be a USB Ethernet device. Runs a webinterface at http://192.168.7.1/
 
-### Build dependencies
+#### Build dependencies
 
 On Debian:
 
@@ -227,7 +228,7 @@ sudo apt install git build-essential cmake gcc-arm-none-eabi
 Your Linux distribution does need to provide a recent CMake (3.13+).
 If not, compile [CMake from source](https://cmake.org/download/#latest) first.
 
-### Build instructions
+#### Build instructions
 
 ```
 git clone --depth 1 https://github.com/maxnet/pico-webserver
