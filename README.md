@@ -1,4 +1,11 @@
 # PicoGameServer
+
+---
+
+### Archived 2/24/26: I will eventually come back and remake this properly! Stay tuned 😜
+
+---
+
 Run a USB game server on your Raspberry Pi Pico or Pico H to play games locally on your device.
 
 ## Credits:<br/>
